@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+  User              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  User                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
+
+model Barbershop {
+  id                String              @id
+  name              String
+  address           String
+  phones            String[]
+  description       String
+  imageUrl          String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  BarbershopService BarbershopService[]
+}
+
+model BarbershopService {
+  id           String     @id
+  name         String
+  description  String
+  imageUrl     String
+  price        Decimal    @db.Decimal(10, 2)
+  barbershopId String
+  Barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  Booking      Booking[]
+}
+
+model Booking {
+  id                String            @id
+  userId            String
+  serviceId         String
+  date              DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime
+  BarbershopService BarbershopService @relation(fields: [serviceId], references: [id])
+  User              User              @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String          @id
+  email         String          @unique
+  name          String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  emailVerified DateTime?
+  image         String?
+  Account       Account[]
+  Authenticator Authenticator[]
+  Booking       Booking[]
+  Session       Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
