@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import ratWheel from '../assets/rat-wheel.png'
 import { supabase } from '../libs/supabaseClient'
-import Auth from '../Auth'
-import Account from '../Account'
 
-
+interface BarbershopProps {
+  name: string
+}
 
 export function Home() {
-  const [barbershops, setBarbershops] = useState([]);
+  const [barbershops, setBarbershops] = useState<BarbershopProps[]>([]);
 
   async function getBarbershops() {
     const { data } = await supabase.from("Barbershop").select();
-    setBarbershops(data);
+    if(data) {
+      setBarbershops(data);
+    }
   }
 
   useEffect(() => {
